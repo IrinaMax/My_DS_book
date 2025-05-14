@@ -1,0 +1,254 @@
+# Causal inference has well-established packages in R, but not in Python.
+#This script shows how PSM - Propensity Score Matching works, 
+#how to match bbalancce on the matching dataset and 
+#how to calculate causal impact using a paired t-test.
+
+# Propensity Score Matching (PSM) takes a sample in the treatment group and finds a sample 
+# with a similar propensity score, or logit propensity score in the non-treatment group. 
+# The goal of matching is to create the treatment and the control groups that are comparable.
+# 
+# The Propensity Score Matching (PSM) process involves the following steps:
+#   
+# 1.Create a matching dataset based on similarities in the probability of getting the 
+# treatment. The probability of getting the treatment is called the propensity score.
+# 2.Evaluate the balance of the matched dataset.
+#   *If the matched dataset is balanced, meaning that the test and control dataset has similar confounders, move forward to the next step.
+#   *If the matched dataset is not balanced, go back to the first step, adjust the hyperparameters, and redo the propensity score matching.
+# 3.Measure the causal impact. In this tutorial, we will use a paired t-test to measure the impact of the treatment.
+
+install.packages("CausalImpact")
+library(CausalImpact)
+library(dplyr)
+# Install R package tableone
+ install.packages('tableone')
+
+# Install R package Matching
+ install.packages('Matching')
+
+# Install R package gtools
+install.packages('gtools')
+
+# Install R package lmtest
+install.packages('lmtest')
+
+# Install R package sandwich
+install.packages('sandwich')
+
+# Read R libraries
+library(tableone)
+library(Matching)
+library(gtools) # For the logit function
+library(lmtest)
+library(sandwich)
+
+# In step 2, we will create a synthetic dataset for the causal inference.=======================
+# 
+# Firstly, we set a random seed using np.random.seed to make the dataset reproducible.
+# Then a dataset with the true causal impact of 10, 4 confounders, 10,000 samples, a binary treatment variable, and a continuous outcome variable is created.
+# After that, we created a dataframe for the data. In the dataframe, the columns W0, W1, W2, and W3 are the four confounders, v0 is the treatment indicator, and y is the outcome.
+set.seed(111)
+
+# Create a synthetic dataset
+W <- matrix(rnorm(4*10000), ncol = 4)
+v0 <- rbinom(10000, 1, 0.5)
+y <- 10*v0 + W %*% c(2, 3, 4, 5) + rnorm(10000)
+
+# Create Dataframe
+df <- data.frame(W, v0, y)
+#colnames(df) <- c(paste0("W", 0:3), "v0", "y")
+
+# Take a look at the data
+head(df)
+
+# Alternatevly here is the other way to make this dataset
+# library(fabricatr)
+# 
+set.seed(460)
+
+N <- 10000
+W0 <- rnorm(N, mean = 0, sd = 2.5)
+W1 <- rnorm(N, mean = 0, sd = 1)
+W2 <- rnorm(N, mean = 0, sd = 1.8)
+W3 <- rnorm(N, mean = 0, sd = 2)
+v0 <- rbinom(N, size = 1, prob = 0.5)
+beta <- 10
+Y <- rnorm(N, mean = beta * v0 + W0 + W1 + W2 + W3, sd = 3)
+
+df <- data.frame(W0, W1, W2, W3, v0, Y)
+
+head(df)
+
+# Rename columns
+colnames(df) <- c("W0", "W1", "W2", "W3", "treatment", "outcome")
+
+# Check the data
+head(df)
+
+# library("reticulate")
+# library("tidyverse")
+
+# Create a variable name in R's global environment
+assign("df", df, envir = .GlobalEnv)
+# ==============================================
+# Unadjusted Mean Differences
+# In step 3, we will get the unadjusted difference between the treatment group and the non-treatment group.
+# Get the matched treatement outcomes
+y_treatment <- df$outcome[df$treatment==1]
+# <- df[df$treatment==1, "outcome"]
+
+
+# Get the matched control outcomes
+y_control <- df$outcome[df$treatment==0]
+
+# Get the mean difference
+unadjusted_diff <- mean(y_treatment - y_control)
+print(unadjusted_diff)
+#If we do not use causal inference and take the direct difference between the two groups, 
+#we conclude that the treatment increased the outcome by 16, which is much higher than the 
+#true causal impact of 10.
+
+#Step 4: Pre-Matching Standardized Mean Difference of Confounders
+# Confounders
+confounders <- c('W0', 'W1', 'W2', 'W3')
+
+# Create table one, test=TRUE means with significance testing
+table1 <- CreateTableOne(var=confounders, strata='treatment', data=df, test=TRUE)
+
+# Print the results
+print(table1, smd=TRUE)
+#Standardized Mean Differences(SMD) greater than 0.1 is usually used to check the imbalance 
+#between the treatment and the control group. We can see that most confounders have SMD greater than 0.1 with a significant p-value, meaning that the confounders differ between the treatment group and the non-treatment group.
+
+# 5.Predict Propensity Score
+# In step 5, we will build a model to predict propensity scores.
+# 
+# The function glm() fits a generalized linear model.
+# The propensity score is the probability of getting the treatment, so we need to use the confounders to predict the probability of getting the treatment.
+# family=binomial means that we are running a logistic regression.
+# propensity_model$fitted.values gets the predicted propensity scores and saves it into a variable called propensity_score.
+# summary(propensity_model) gives us the summary of the model.
+# 
+# Propensity model
+propensity_model <- glm(treatment ~ W0 + W1 + W2 + W3, family=binomial, data=df)
+
+# Propensity score
+propensity_score <- propensity_model$fitted.values
+
+# Model results
+summary(propensity_model)
+
+#6: Propensity Score Matching (PSM) Using R Package Matching==============
+
+# In step 6, we will discuss using the R Matching package to do the Propensity Score Matching (PSM).
+# 
+# After getting the propensity score, we can pass it to the Match function for Propensity Score Matching (PSM).
+# 
+# Tr=df[['treatment']] specifies the column name of the treatment indicator variable.
+# M=1 means that we are conducting one-to-one matching. Every treatment unit will be matched with 1 control unit.
+# X=propensity_score means that the match is based on the propensity score values.
+# replace=F means that each sample in the control group is only matched with one sample in the treatment group. The control group unit will not be put back after matching.
+# A caliper is the distance threshold for any match. The matched pairs with a distance greater than the caliper distance will be dropped. caliper=.2 means that matches greater than 20% of the standard deviations of propensity score will be dropped.
+# After matching was completed, the matched dataset was put into the CreateTableOne function for balance checking.
+
+# Propensity score matching
+psm_matching <- Match(Tr=df[['treatment']], M=1, X=propensity_score, replace=F, caliper = 0.2)
+
+# Matched data
+matched_psm_matching <- df[unlist(psm_matching[c('index.treated', 'index.control')]),]
+
+# Matched data SMD
+matchedtab1_psm_matching <- CreateTableOne(vars=confounders, strata='treatment', data=matched_psm_matching, test = TRUE)
+print(matchedtab1_psm_matching, smd=TRUE)
+#:We can see that 792 units were matched, and the standardized mean difference (SMD) for all the confounders is below 0.1 with insignificant p-values.
+
+# When SMDs are smaller than 0.1 and p-values are not significant, it means that the differences between the treatment and control groups for those confounders are small, and are likely due to chance. This indicates that there is no substantial confounding due to these variables, and the treatment effect estimate is likely to be less biased.
+
+ #However, it is important to note that the assessment of balance is not limited to SMDs and p-values. It is also important to consider the substantive importance of the confounders and how they may affect the causal inference. SMDs and p-values are useful tools for assessing balance, but they are not definitive in themselves.
+#7: Logit Propensity Score Matching (PSM) Using R Package Matching
+# Another way of doing Propensity Score Matching (PSM) is to match on the logit propensity score.
+# 
+# The code for matching is very similar to the regular Propensity Score Matching (PSM). The only difference is that X=propensity_score is replaced with X=logit(propensity_score).
+# 
+# Logit propensity score matching
+logit_psm_matching <- Match(Tr=df[['treatment']], M=1, X=logit(propensity_score), replace=F, caliper = 0.2)
+
+# Matched data
+matched_logit_psm_matching <- df[unlist(logit_psm_matching[c('index.treated', 'index.control')]),]
+
+# Matched data SMD
+matchedtab1_logit_psm_matching <- CreateTableOne(vars=confounders, strata='treatment', data=matched_logit_psm_matching, test = TRUE)
+print(matchedtab1_logit_psm_matching, smd=TRUE)
+#After matching on the logit propensity score, we can see that 4839   units were matched, and the standardized mean difference (SMD) for all the confounders is below 0.1 with insignificant p-values.
+
+
+#8: Estimating Treatment Effect Using Matched Data
+# In step 8, we will estimate the treatment effect using the matched data.
+# 
+# A paired t-test is used on both the Propensity Score Matching (PSM) dataset and the logit Propensity Score Matching (PSM) dataset.
+
+# Get the matched treatement outcomes
+y_treatment_psm_matching <- matched_psm_matching$outcome[matched_psm_matching$treatment==1]
+
+# Get the matched control outcomes
+y_control_psm_matching <- matched_psm_matching$outcome[matched_psm_matching$treatment==0]
+
+# t-test
+t.test(y_treatment_psm_matching,
+       y_control_psm_matching,
+       paired=TRUE,
+       conf.level=0.95)
+# Paired t-test
+# 
+# data:  y_treatment_psm_matching and y_control_psm_matching
+# t = 74.185, df = 4839, p-value < 2.2e-16
+# alternative hypothesis: true mean difference is not equal to 0
+# 95 percent confidence interval:
+#   c
+# sample estimates:
+#   mean difference 
+# 9.988829 
+
+#For the Propensity Score Matching (PSM) dataset, we can see that
+
+# The estimated causal impact is 9.988829 .
+# The 95 percent confidence interval is 9.72 to 10.25.
+# The hypothesis testing is significant because the p-value is close to 0.
+
+# Get the matched treatement outcomes
+y_treatment_logit_psm_matching <- matched_logit_psm_matching$outcome[matched_logit_psm_matching$treatment==1]
+
+# Get the matched control outcomes
+y_control_logit_psm_matching <- matched_logit_psm_matching$outcome[matched_logit_psm_matching$treatment==0]
+
+# t-test
+t.test(y_treatment_logit_psm_matching,
+       y_control_logit_psm_matching,
+       paired=TRUE,
+       conf.level=0.95)
+# Paired t-test
+# 
+# data:  y_treatment_logit_psm_matching and y_control_logit_psm_matching
+# t = 73.779, df = 4838, p-value < 2.2e-16
+# alternative hypothesis: true mean difference is not equal to 0
+# 95 percent confidence interval:
+#   c
+# sample estimates:
+#   mean difference 
+# 9.999822 
+#For the logit Propensity Score Matching (PSM) dataset, we can see that
+
+# The estimated causal impact is 9.999822 .
+# The 95 percent confidence interval is 9.734108 to 10.265536.
+# The hypothesis testing is significant because the p-value is close to 0.
+# From the paired t-test result, we can see that logit Propensity Score Matching (PSM) has a more accurate causality estimation than the Propensity Score Matching (PSM) for this dataset.
+# 
+
+#Summary
+# In this tutorial, we talked about how to do Propensity Score Matching (PSM) using the R Matching package. You learned:
+#   
+#   How do the Propensity Score Matching (PSM) algorithms work?
+#   How to conduct Propensity Score Matching (PSM) or Logit Propensity Score Matching (PSM) using the R package Matching?
+#   How to check the balance of the matched dataset?
+#   How to calculate causal impact using a paired t-test?
+
+
