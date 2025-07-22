@@ -1,0 +1,122 @@
+import numpy as np
+import pandas as pd
+from scipy.stats import ttest_rel  # correct import for paired t-test
+
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import NearestNeighbors
+#from statsmodels.stats.weightstats import ttest_rel
+from scipy.special import logit
+
+# 1. Create synthetic dataset
+np.random.seed(460)
+N = 10000
+
+W0 = np.random.normal(0, 2.5, N)
+W1 = np.random.normal(0, 1.0, N)
+W2 = np.random.normal(0, 1.8, N)
+W3 = np.random.normal(0, 2.0, N)
+treatment = np.random.binomial(1, 0.5, N)
+beta = 10
+outcome = np.random.normal(beta * treatment + W0 + W1 + W2 + W3, 3)
+
+df = pd.DataFrame({'W0': W0, 'W1': W1, 'W2': W2, 'W3': W3, 'treatment': treatment, 'outcome': outcome})
+
+# 2. Unadjusted Difference in Means
+unadjusted_diff = df[df['treatment'] == 1]['outcome'].mean() - df[df['treatment'] == 0]['outcome'].mean()
+print(f"Unadjusted difference: {unadjusted_diff:.4f}")
+
+# 3. Propensity Score Estimation using Logistic Regression
+X = df[['W0', 'W1', 'W2', 'W3']]
+y = df['treatment']
+model = LogisticRegression()
+model.fit(X, y)
+df['propensity_score'] = model.predict_proba(X)[:, 1]
+df['logit_ps'] = logit(df['propensity_score'])
+
+# 4. Propensity Score Matching (1-to-1 Nearest Neighbor without replacement, with caliper)
+def match(df, score_col='propensity_score', caliper=0.2, logit=False):
+    treated = df[df['treatment'] == 1].copy()
+    control = df[df['treatment'] == 0].copy()
+
+    X_treated = treated[score_col].values.reshape(-1, 1)
+    X_control = control[score_col].values.reshape(-1, 1)
+
+    nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(X_control)
+    distances, indices = nbrs.kneighbors(X_treated)
+
+    matches = []
+    used = set()
+
+    for i, (d, idx) in enumerate(zip(distances, indices)):
+        if d[0] <= caliper and idx[0] not in used:
+            matches.append((treated.index[i], control.index[idx[0]]))
+            used.add(idx[0])
+
+    matched_indices = [i for pair in matches for i in pair]
+    return df.loc[matched_indices].copy()
+
+# 5. Match on raw propensity score
+matched_df = match(df, score_col='propensity_score', caliper=0.2)
+
+# 6. Match on logit propensity score
+matched_logit_df = match(df, score_col='logit_ps', caliper=0.2)
+
+# 7. Paired t-test on matched datasets
+def paired_ttest(matched):
+    treated = matched[matched['treatment'] == 1].sort_index()
+    control = matched[matched['treatment'] == 0].sort_index()
+    y_t = treated['outcome'].values
+    y_c = control['outcome'].values
+    t_stat, p_value = ttest_rel(y_t, y_c)
+    df = len(y_t) - 1
+
+    return {
+        "mean_diff": np.mean(y_t - y_c),
+        "t_stat": t_stat,
+        "p_value": p_value
+    }
+
+res_raw = paired_ttest(matched_df)
+res_logit = paired_ttest(matched_logit_df)
+
+print("\n== Raw PSM Matching ==")
+print(f"Estimated causal impact: {res_raw['mean_diff']:.4f}")
+print(f"T-statistic: {res_raw['t_stat']:.4f}, P-value: {res_raw['p_value']:.4g}")
+
+print("\n== Logit PSM Matching ==")
+print(f"Estimated causal impact: {res_logit['mean_diff']:.4f}")
+print(f"T-statistic: {res_logit['t_stat']:.4f}, P-value: {res_logit['p_value']:.4g}")
+--------------- OUT
+Unadjusted difference: 10.0675
+
+== Raw PSM Matching ==
+Estimated causal impact: 9.9456
+T-statistic: 76.7257, P-value: 0
+
+== Logit PSM Matching ==
+Estimated causal impact: 9.9456
+T-statistic: 76.7257, P-value: 0
+
+----------------- Summary------------------------
+Unadjusted difference: 10.0675
+This is the simple difference in average outcomes between the treated and control groups without any adjustment for confounders. 
+It suggests the treatment effect is about 10.07, but this estimate can be biased if the groups differ on important confounders.
+
+Raw PSM Matching estimated causal impact: 9.9456
+After using Propensity Score Matching (PSM) to create a balanced comparison group (matched on the raw propensity score), 
+the estimated treatment effect is about 9.95. This is closer to the true causal effect because the matching balances confounders between groups.
+
+Logit PSM Matching estimated causal impact: 9.9456
+Matching on the logit of the propensity score yields the same estimated causal impact (~9.95), 
+confirming the robustness of the matching method. This often improves the quality of matches.
+
+T-statistic ~ 76.7 and P-value = 0
+The extremely large t-statistic and near-zero p-value indicate a highly statistically significant difference between treatment 
+and control groups after matching. The chance that this observed effect is due to random variation is essentially zero.
+
+PSM (both raw and logit) corrects for confounding, producing a more reliable estimate of the treatment effect (~9.95), 
+which closely aligns with the true effect (beta = 10). 
+The unadjusted estimate is close here but in general can be misleading without adjustment.
+
