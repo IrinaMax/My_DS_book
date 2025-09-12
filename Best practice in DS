@@ -455,6 +455,57 @@ ggplot() +
   labs(title = "Age Distribution: Reference vs Drifted", x = "Age", y = "Count") +
   scale_fill_manual(values = c("Reference" = "blue", "Drifted" = "red")) +
   theme_minimal()
+--------------
+# Load libraries
+library(data.table)
+library(ggplot2)
+
+# Load datasets (adjust paths for Dataiku or local CSVs)
+reference <- fread("reference_churn.csv")
+drifted <- fread("drifted_churn.csv")
+
+# Function to create histogram with mean lines
+plot_distribution <- function(feature, ref_data, drift_data, feature_name) {
+  # Calculate means
+  mean_ref <- mean(ref_data[[feature]], na.rm = TRUE)
+  mean_drift <- mean(drift_data[[feature]], na.rm = TRUE)
+  
+  # Combine data for plotting
+  plot_data <- data.table(
+    value = c(ref_data[[feature]], drift_data[[feature]]),
+    dataset = rep(c("Reference", "Drifted"), each = nrow(ref_data))
+  )
+  
+  # Create histogram
+  p <- ggplot(plot_data, aes(x = value, fill = dataset)) +
+    geom_histogram(alpha = 0.5, position = "identity", bins = 50) +
+    geom_vline(aes(xintercept = mean_ref, color = "Reference Mean"), linetype = "dashed", size = 1) +
+    geom_vline(aes(xintercept = mean_drift, color = "Drifted Mean"), linetype = "dashed", size = 1) +
+    scale_fill_manual(values = c("Reference" = "#1f77b4", "Drifted" = "#ff7f0e")) +
+    scale_color_manual(values = c("Reference Mean" = "#1f77b4", "Drifted Mean" = "#ff7f0e")) +
+    labs(
+      title = paste("Distribution of", feature_name, "with Mean Shift"),
+      x = feature_name,
+      y = "Count"
+    ) +
+    theme_minimal() +
+    theme(legend.title = element_blank())
+  
+  # Save plot
+  ggsave(paste0(feature, "_drift_plot.png"), plot = p, width = 8, height = 6)
+  
+  return(p)
+}
+
+# Generate plots for each feature
+plot_age <- plot_distribution("age", reference, drifted, "Age")
+plot_income <- plot_distribution("income", reference, drifted, "Income")
+plot_tenure <- plot_distribution("tenure_months", reference, drifted, "Tenure (Months)")
+
+# Print plots (for Jupyter or local R; in Dataiku, check saved files)
+print(plot_age)
+print(plot_income)
+print(plot_tenure)
 
 # Save plot (optional, for Dataiku reporting)
 ggsave("age_drift_plot.png")
