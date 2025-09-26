@@ -1,0 +1,19 @@
+Model evaluation metrics are measurements used to assess a machine learning model's performance, helping to determine its accuracy, reliability, and suitability for a given task. Key metrics vary by model type, with classification tasks using metrics like Accuracy, Precision, Recall, F1 Score, and the confusion matrix, while regression tasks use metrics such as Mean Squared Error (MSE), Root Mean Squared Error (RMSE), Mean Absolute Error (MAE), and R-squared to understand prediction quality.  
+Classification Metrics
+These metrics are used to evaluate models that categorize data into predefined labels. 
+Accuracy: The proportion of correctly classified instances out of the total. 
+Precision: The proportion of true positive predictions out of all positive predictions made by the model. 
+Recall (Sensitivity): The fraction of relevant instances that the model correctly identified out of the total number of relevant instances. 
+F1 Score: A weighted average of precision and recall, providing a single score to balance the two metrics. 
+Confusion Matrix: A table that shows the relationship between actual and predicted classes, helping to identify errors like false positives and false negatives. 
+ROC AUC: The Area Under the Receiver Operating Characteristic curve, which measures a classifier's ability to distinguish between classes across various thresholds. 
+Regression Metrics
+These metrics are used to evaluate models that predict continuous values. 
+Mean Absolute Error (MAE): The average of the absolute differences between the predicted and actual values. 
+Mean Squared Error (MSE): The average of the squared differences between the actual and predicted values. 
+Root Mean Squared Error (RMSE): The square root of the MSE, providing an error metric in the same units as the target variable. 
+R-squared (Coefficient of Determination): Represents the proportion of the variance in the dependent variable that is predictable from the independent variable(s). 
+Importance of Choosing the Right Metric
+Task-Specific: The choice of metric should align with the specific problem being solved, such as prioritizing recall for medical diagnoses where missing positive cases is critical. 
+Dataset Characteristics: Metrics can behave differently with imbalanced datasets, making it crucial to select those that provide insights into model performance across all classes. 
+Model Trade-offs: Different metrics highlight different aspects of model performance, such as the trade-off between precision and recall, allowing data scientists to make informed decisions about model optimization. 
