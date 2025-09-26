@@ -1,4 +1,7 @@
-Model evaluation metrics are measurements used to assess a machine learning model's performance, helping to determine its accuracy, reliability, and suitability for a given task. Key metrics vary by model type, with classification tasks using metrics like Accuracy, Precision, Recall, F1 Score, and the confusion matrix, while regression tasks use metrics such as Mean Squared Error (MSE), Root Mean Squared Error (RMSE), Mean Absolute Error (MAE), and R-squared to understand prediction quality.  
+Model evaluation metrics are measurements used to assess a machine learning model's performance, helping to determine its accuracy, reliability, and suitability for a given task. 
+Key metrics vary by model type, with classification tasks using metrics like Accuracy, Precision, Recall, F1 Score, and the confusion matrix, 
+while regression tasks use metrics such as Mean Squared Error (MSE), Root Mean Squared Error (RMSE), Mean Absolute Error (MAE), and R-squared to understand prediction quality. 
+
 Classification Metrics
 These metrics are used to evaluate models that categorize data into predefined labels. 
 Accuracy: The proportion of correctly classified instances out of the total. 
