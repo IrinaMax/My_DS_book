@@ -22,3 +22,53 @@ Dataset Characteristics: Metrics can behave differently with imbalanced datasets
 Model Trade-offs: Different metrics highlight different aspects of model performance, such as the trade-off between precision and recall, allowing data scientists to make informed decisions about model optimization. 
 
 https://www.dataiku.com/product/key-capabilities/dataiku-govern/#:~:text=Oversee%20Projects%20&%20Reduce%20Shadow%20AI,Models%2C%20&%20LLM%2DPowered%20Agents
+
+create a list we I have to work to find out how securely Corporate data traveling on Dataiku platform according Governance and Data Science best practice perspective? Where we can find weak spots, add some process to check out and improve the processes?
+
+To find and address weak spots in how corporate data travels on the Dataiku platform, you should conduct a structured review covering three major areas: Governance, Data Science Best Practices, and Technical Infrastructure. The following checklist identifies key areas of investigation and recommends processes for continuous improvement.
+Governance and process review
+Weak spots to investigate
+Lack of defined data ownership: Without clear owners, no single person is accountable for the security and integrity of a dataset as it moves through the platform. This leads to inconsistent security controls.
+Inconsistent data classification: A failure to consistently classify data sensitivity can result in sensitive data being handled with inadequate security measures.
+Undefined access request and provisioning processes: Ad-hoc access grants make it difficult to enforce the principle of least privilege, increasing the risk of unauthorized access and data misuse.
+Absence of formal deployment sign-offs: Without a structured approval process, models and projects can be moved to production without proper security and compliance reviews.
+Incomplete audit trails and monitoring: Lack of comprehensive logging makes it difficult to track data lineage, who accessed data, and when. This hinders incident response and accountability.
+Processes to implement
+Establish data stewardship: Assign clear data owners and stewards responsible for defining and enforcing security policies for their data assets.
+Standardize data classification: Implement a formal, enterprise-wide data classification scheme (e.g., Public, Internal, Confidential, Restricted). This ensures all data is handled according to its sensitivity level.
+Implement Dataiku Govern: Use the Dataiku Govern node to centralize and enforce enterprise-level policies, standardize workflows, and manage sign-off rules for deployment.
+Define clear access roles: Formalize the roles and permissions required for different types of users and create an official process for requesting and approving access to connections and projects.
+Enforce deployment policies: Configure Dataiku Govern to block the deployment of models or projects to production nodes until all required security and compliance sign-offs have been completed.
+Data Science best practices review
+Weak spots to investigate
+Data leakage in experimental flows: Data scientists may inadvertently introduce security risks by using sensitive data during model development in less-controlled experimental environments.
+Inconsistent data preparation: Manual or undocumented data cleaning can lead to inconsistencies and potential exposure of sensitive information.
+Replication of sensitive data: When data scientists create copies of datasets for their projects, this can lead to data proliferation and inconsistent security controls outside of the standard flow.
+Lack of anonymization or pseudonymization: Failure to anonymize data appropriately for different use cases means sensitive information may be used when it isn't necessary.
+Poorly documented pipelines: Unclear or absent documentation about data lineage and transformations makes it difficult to audit and ensure security over time.
+Processes to implement
+Implement a segregated environment: Create separate Dataiku instances or project folders for development, testing, and production. Use synthetic or anonymized data in non-production environments to prevent data leakage.
+Standardize data preparation: Promote the use of Dataiku visual recipes to ensure repeatable and auditable data transformations, including consistent handling of sensitive columns.
+Encourage reuse of secure connections: Restrict users' ability to freely create new datasets and instead promote the reuse of securely configured connections and datasets managed by data stewards.
+Create standardized templates: Provide project and model templates with built-in best practices for data handling, including pre-configured recipes for data masking and hashing.
+Integrate documentation: Use Dataiku's built-in Flow documentation feature to automatically create records of all data transformations and logic. Enforce its use as part of the project lifecycle.
+Technical and infrastructure security review
+Weak spots to investigate
+Insecure platform configuration: The Dataiku platform might have default settings that are not hardened for a corporate environment, such as un-expired user sessions or insecure cookies.
+Weak authentication controls: Reliance on single-factor authentication, especially in production, is a critical vulnerability.
+Insufficient encryption: Data may be unencrypted at rest (in storage) or in transit (during transfer).
+Network segmentation weaknesses: The network between Dataiku and its data sources may not be properly segmented, allowing for potential lateral movement during a breach.
+Inadequate secrets management: Using hard-coded credentials in scripts or notebooks instead of secure methods is a major security risk.
+Processes to implement
+Harden Dataiku platform settings: Review and configure all advanced security options in general-settings.json, including enforcing secure cookies, expiring user sessions, and forcing a single session per user.
+Enforce strong authentication: Integrate with enterprise Single Sign-On (SSO) and Multi-Factor Authentication (MFA) to enforce strong identity verification for all users.
+Enable end-to-end encryption: Ensure that all Dataiku traffic is encrypted using TLS (HTTPS). Confirm that data at rest in all storage locations (e.g., databases, object stores) is also encrypted using strong standards like AES-256.
+Use network segmentation: Configure network and firewall rules to restrict traffic to and from the Dataiku platform. Segment the network so that Dataiku nodes can only access the specific data sources required.
+Implement secure secrets management: Educate users on the secure handling of credentials using Dataiku's built-in secrets management or an enterprise key management solution.
+Continuous improvement process
+To check and improve security over time, implement the following ongoing processes:
+Regular security audits: Conduct regular audits of Dataiku projects and access controls to ensure compliance with policies.
+Formal security reviews: Mandate a security review step for all production deployments, including the use of Dataiku Govern to enforce sign-offs.
+Automated monitoring and alerting: Use audit trails and monitoring tools to proactively detect and alert on suspicious activity, such as unusual data access patterns.
+Employee training: Provide mandatory, periodic training on data handling best practices, data classification, and the company's specific security policies within Dataiku.
+Incident response plan: Create a clear incident response plan for data breaches within the Dataiku platform, defining roles and mitigation steps.
