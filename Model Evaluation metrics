@@ -20,3 +20,5 @@ Importance of Choosing the Right Metric
 Task-Specific: The choice of metric should align with the specific problem being solved, such as prioritizing recall for medical diagnoses where missing positive cases is critical. 
 Dataset Characteristics: Metrics can behave differently with imbalanced datasets, making it crucial to select those that provide insights into model performance across all classes. 
 Model Trade-offs: Different metrics highlight different aspects of model performance, such as the trade-off between precision and recall, allowing data scientists to make informed decisions about model optimization. 
+
+https://www.dataiku.com/product/key-capabilities/dataiku-govern/#:~:text=Oversee%20Projects%20&%20Reduce%20Shadow%20AI,Models%2C%20&%20LLM%2DPowered%20Agents
