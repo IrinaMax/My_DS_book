@@ -1,0 +1,69 @@
+clarifying roles in Dataiku Govern Node or in broader MLOps/data governance conversations:
+
+🔹 Difference Between a Data Science Model and an ML Model
+
+1. Data Science Model (Broad/Analytical)
+
+Scope: Encompasses any statistical, mathematical, or computational model built to explain data or support decisions.
+
+Examples: Regression for customer churn, survival analysis for dental claim outcomes, time-series forecasting of member visits.
+
+Goal: Insight, explanation, hypothesis testing, decision support.
+
+May or may not be automated or put into production.
+
+2. Machine Learning (ML) Model (Operational/Deployed)
+
+Scope: A subset of data science models, focused on predictive learning from data patterns.
+
+Examples: Gradient boosted trees for claim fraud detection, neural nets for image classification of X-rays, recommender systems.
+
+Goal: Automation and prediction, optimized for production use.
+
+Always intended for deployment, monitoring, and continuous improvement.
+
+👉 So: All ML models are data science models, but not all data science models are ML models.
+
+🔹 Lifecycle Differences
+Data Science Model Lifecycle (Research/Analytics)
+
+Problem Definition – Translate business/clinical questions into analytical hypotheses.
+
+Data Preparation – Collect, clean, and explore datasets.
+
+Exploratory Analysis & Modeling – Build statistical/ML models (could be regression, clustering, etc.).
+
+Validation – Ensure model makes sense, meets business goals.
+
+Delivery of Insights – Share results (dashboards, reports, presentations).
+
+Optional Deployment – Only if the model is useful in production.
+
+👉 Ends once business stakeholders understand the insights.
+
+ML Model Lifecycle (Production/Operational)
+
+Problem Scoping & Requirements – Define target, features, KPIs for automation.
+
+Data Engineering & Feature Store – Standardize pipelines, reusable features.
+
+Model Development – Train multiple algorithms, optimize hyperparameters.
+
+Model Validation & Governance – Bias checks, fairness, compliance sign-offs.
+
+Deployment (MLOps) – Deploy model into production (API, batch, real-time).
+
+Monitoring & Feedback – Track drift, accuracy decay, and performance.
+
+Retraining/Updating – Continuous improvement loop.
+
+👉 Never ends — continuous cycle because production models degrade.
+
+✅ Summary in One Sentence
+
+Data Science Models → Built for understanding and decision support (may stop at insights).
+
+ML Models → Built for automation and prediction in production, requiring ongoing monitoring and retraining.
+
+-------------------------------------------
+
