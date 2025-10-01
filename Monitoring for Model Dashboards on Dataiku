@@ -1,0 +1,44 @@
+### Using Unified Monitoring for Model Dashboards
+Dataiku's Unified Monitoring provides out-of-the-box dashboards to monitor the health, status, and performance of machine learning models in production, including Dataiku projects, DSS endpoints, and external endpoints (e.g., from AWS SageMaker or Azure ML). It serves as a central hub for visibility into MLOps, covering aspects like model status, data quality, execution, and drift. This is accessible via the Deployer and requires administrative setup for full functionality.
+
+#### Steps to Access and Set Up Unified Monitoring Dashboards
+1. **Access Unified Monitoring**:  
+   Navigate to the Deployer in your Dataiku instance. Unified Monitoring is integrated there, featuring screens like Overview (high-level counts of deployments and statuses), Dataiku Projects (project-specific health metrics), and API Endpoints (real-time inference and activity tracking). Click on these panels to view detailed dashboards.
+
+2. **Configure Settings**:  
+   As an administrator, go to the Settings screen in Unified Monitoring to include or exclude project infrastructures, endpoints, or external models from monitoring. Toggle sliders to enable monitoring for specific nodes or infrastructures; disabling erases historical data but restarts fresh upon reactivation. Ensure API keys and URLs are set for querying nodes (automatic on Dataiku Cloud or with Fleet Manager).
+
+3. **Monitor Model Status and Metrics**:  
+   Use the dashboards to track statuses like global health, deployment, model performance (e.g., via Model Evaluation Stores), execution, data quality, and governance. For models, it evaluates checks from evaluation recipes and compares against baselines for drift (input or concept). Set up alerts for status changes via email, Slack, or other channels configured in Global Settings.
+
+4. **Handle External and Deployed Models**:  
+   For models deployed via Deploy Anywhere (e.g., Databricks or Snowflake), include them in scopes for unified visibility. Query activity metrics programmatically if needed using the Python API for custom extensions.
+https://knowledge.dataiku.com/latest/mlops-o16n/model-monitoring/index.html
+
+### Creating Custom Model Monitoring Dashboards
+For tailored dashboards beyond Unified Monitoring, use Dataiku's native dashboard tools to visualize metrics from Model Evaluation Stores (MES), datasets, or APIs. This is ideal for sharing insights with stakeholders or integrating custom visuals.
+
+#### Steps to Build a Custom Dashboard
+1. **Prepare Monitoring Data**:  
+   - Create a Model Evaluation Store (MES) in your project to store model metrics (e.g., accuracy, precision, AUC) and drift checks. Use an Evaluate recipe on production data or API logs as input.  
+   - For API endpoints, set up an Event Server to collect prediction logs and health info, then import into a dataset via queries.  
+   - Export metrics to a standalone dataset from the MES (via Evaluate recipe settings or MES Status tab) for further analysis.
+
+2. **Create Insights**:  
+   - From datasets or MES, generate charts (e.g., for drift trends), tables, or model reports. Publish metrics directly (e.g., via the metrics view caret > Publish).  
+   - For advanced views, use Python notebooks or webapps to pull API health and evaluation store data, then publish as insights.
+
+3. **Build the Dashboard**:  
+   - In your project, go to the default dashboard or create a new one (via the Dashboards menu).  
+   - Click + to add tiles: Select charts, model reports, metrics, or notebooks from your insights. Group tiles for organized sections (Cmd/Ctrl + click multiple, then Group).  
+   - Add filters for interactivity (e.g., by time or model version) and authorized datasets for dashboard-only users.
+
+4. **Automate and Share**:  
+   - Automate metric computation and dashboard refreshes using scenarios (e.g., time-based runs of Evaluate recipes).  
+   - Share via project permissions (e.g., Read Dashboards for viewers) or export as PDF. For Govern node users, leverage the Model Registry for cross-project views.  
+   - Integrate alerts or drill-downs for issues like drift.
+
+https://community.dataiku.com/discussion/8313/dataset-and-ml-models-dashboard
+https://doc.dataiku.com/dss/latest/dashboards/concepts.html
+
+For hands-on guidance, refer to the Model Monitoring Basics tutorial in Dataiku Knowledge Base or Academy courses on Production Monitoring. Custom setups may require dashboard authorization for restricted access.
