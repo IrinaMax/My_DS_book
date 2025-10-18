@@ -1,0 +1,25 @@
+The "percentage of variance explained" is a statistical measure that shows how much of the variation in a dependent variable is accounted for by the independent variables
+in a statistical model. The formula is represented as the ratio of the Sum of Squares Explained (SSI) to the Total Sum of Squares (SST).
+
+In different statistical analyses, this concept goes by different names: 
+In regression analysis, it is known as \(R^{2}\), or the coefficient of determination.
+In ANOVA, it is often called \(\eta ^{2}\) (eta-squared).
+In principal component analysis (PCA), it is the proportion of variance explained by each principal component. 
+
+The breakdown of sums of squares To understand the percentage of variance explained, you must first understand how the different "sums of squares" relate to one another: 
+Total Sum of Squares (SST) This represents the total variation in the observed data for the dependent variable.
+It is calculated by summing the squared differences between each observation and the overall mean of the data.
+Explained Sum of Squares (SSI) Also known as the Sum of Squares due to Regression (SSR) or Sum of Squares Between (SSB), 
+this value measures the variation that the model accounts for.
+It is calculated by summing the squared differences between the predicted values from the model and the overall mean of the data. 
+Residual Sum of Squares (SSE) Also known as the Sum of Squares of the Error (or RSS), this represents the variation in the data that the model does not explain.
+It is the sum of the squared differences between the observed values and the predicted values from the model. 
+These values have the following relationship:\(SST=SSI+SSE\)  ------  The formula and calculation 
+The percentage of variance explained is calculated using the following formula:\text{% of Variance Explained} = \left(\frac{SSI}{SST}\right) \times 100
+This can also be expressed as:\text{% of Variance Explained} = \left(1 - \frac{SSE}{SST}\right) \times 100
+
+Interpretation
+The resulting percentage indicates the proportion of the total variability in the dependent variable that is predictable from the independent variables in your model. 
+A value of 100% means the model perfectly explains all the variation in the dependent variable.
+A value of 0% means the model explains none of the variation. The model's predictions are no better than simply using the mean of the dependent variable.
+An intermediate value, such as 70%, indicates that 70% of the variance is explained by the model, while the remaining 30% is left unexplained. 
