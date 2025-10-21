@@ -1,0 +1,22 @@
+DIKU DSS Data Leakage
+Data leakage on Dataiku refers to the use of information during model training that would not be available in a real-world production setting. This can happen at various stages of the machine learning process within Dataiku and leads to overly optimistic performance metrics during testing, resulting in models that fail to generalize to new data. 
+Types of data leakage in Dataiku
+Data leakage can occur in two main forms, both of which can be introduced during the data preparation and modeling steps in Dataiku. 
+Target leakage
+This happens when a feature used for training a model contains information about the target variable that is not available at prediction time. 
+Example: If you are training a model in Dataiku to predict customer churn, and you include a feature that is only created after a customer has churned (e.g., churn_date), the model will achieve unrealistically high accuracy by "seeing the future." When deployed, this feature will be unavailable, and the model will fail. 
+Train-test contamination
+This type of leakage occurs when information from the test or validation set unintentionally influences the training process. This is most common during data preprocessing. 
+Example: You might perform a normalization step in a Dataiku Prepare recipe on the entire dataset (training, validation, and test data) before splitting it. This causes the test set's statistical properties (like mean and standard deviation) to leak into the training data, biasing the model and inflating its performance metrics. 
+How to detect data leakage in Dataiku
+Dataiku offers built-in diagnostics that help identify potential data leakage issues. 
+Unusually high performance: The platform can detect if a model's performance metric, such as AUC, is unrealistically high (e.g., >98%), which is a strong sign of leakage.
+Suspiciously high feature importance: If the model's feature importance analysis shows a single feature accounting for a very high percentage of the importance score, Dataiku will issue a warning. This is often an indicator that the feature contains leaked information.
+Training and test performance gap: A significant drop in performance when comparing training results to new, unseen data can indicate that the model has overfit due to leakage. 
+How to prevent data leakage in Dataiku
+You can take several precautions within the Dataiku workflow to prevent data leakage.
+Split data first, then preprocess: Ensure your train, validation, and test datasets are split before any preprocessing steps like scaling, normalization, or imputation are performed. This prevents information from the test set from contaminating the training process.
+Use time-based splits for time series: For time-dependent data, use chronological splitting methods to ensure that past data is used to predict the future. Dataiku's time series forecasting features are designed to handle this correctly.
+Careful feature engineering: When creating new features, only use data that would be available at the time of prediction. Dataiku's "Generate features" recipe, for instance, is designed to help you avoid this prediction leakage.
+Correct cross-validation: When using k-fold cross-validation in Dataiku, ensure that data preparation is performed inside each fold to keep the training and validation data independent. Dataiku's settings can be configured for this.
+Monitor feature importance: Use Dataiku's model diagnostics to examine feature importance. If a feature seems unnaturally important, investigate it as a potential source of leakage. 
